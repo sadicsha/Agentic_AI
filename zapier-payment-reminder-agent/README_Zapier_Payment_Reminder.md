@@ -1,4 +1,4 @@
-# SCIT Payment Reminder & Reconciliation Agent
+# Zapier Payment Reminder & Reconciliation Agent
 
 An AI-assisted payment reminder workflow built with **Zapier Agents, Google Sheets, and Gmail**. It is designed to read invoice records, identify pending payments, send reminder emails, find payment-related replies, and update the matching spreadsheet row according to the configured rules.
 
