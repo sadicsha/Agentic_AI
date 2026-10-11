@@ -1,0 +1,156 @@
+{
+  "name": "Sadicsha Khandait  - Multiagent Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "fd56c4fc-d468-4f6a-a9dc-0a3f8282e51b",
+      "name": "When chat message received",
+      "webhookId": "bb511485-a408-4560-b7f9-1e22fad4feac"
+    },
+    {
+      "parameters": {
+        "query": "who is leo messi?",
+        "options": {}
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavilyTool",
+      "typeVersion": 1,
+      "position": [
+        360,
+        232
+      ],
+      "id": "60ad25b6-ed4a-4446-9a38-2686ecee4aad",
+      "name": "Search in Tavily",
+      "credentials": {
+        "tavilyApi": {
+          "id": "BONyI4pyzrqabHJK",
+          "name": "Tavily account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        232,
+        232
+      ],
+      "id": "368f94aa-5217-4729-9488-d98e46b1b016",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Q4ig7G26FJRJHxQ5",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are the Research Agent.\nYour responsibility is to research the user's question using the Tavily Search tool.\nInstructions:\n1. Understand the user's question.\n2. Search the web for relevant and reliable information using Tavily.\n3. Identify the most important findings.\n4. Include source URLs wherever available.\n5. Do not invent facts, statistics, or sources.\n6. Clearly mention when information cannot be verified.\n7. Return your findings in a structured format with the following sections:\n   - Research Question\n   - Key Findings\n   - Supporting Evidence\n   - Source URLs\n   - Information Gaps\n\nYour output will be reviewed by a second AI agent. Provide clear, factual, and useful research rather than a final polished report.\nFor every factual claim, retrieve relevant web sources using Tavily. Provide at least one direct, working source URL for each of the three examples. Prefer official education organizations, research papers, and documented case studies. Do not provide generic organization homepages. If a claim cannot be verified, clearly label it as unverified rather than inventing a source."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "82d42147-ac14-4a32-ae20-9a8c2e7711e1",
+      "name": "AI Agent 1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=={{\n  'USER QUESTION:\\n' +\n  $('When chat message received').first().json.chatInput +\n  '\\n\\nRESEARCH FROM AI AGENT 1:\\n' +\n  $('AI Agent 1').first().json.output +\n  '\\n\\nAnalyze the research above and answer the original user question. Do not ask the user to provide the research again.'\n}}",
+        "options": {
+          "systemMessage": "You are the Analysis and Reporting Agent.\n\nYour responsibility is to review the research provided by the previous Research Agent and produce a clear, useful final answer.\n\nInstructions:\n1. Analyze the research findings received from the previous agent.\n2. Organize the information into logical sections.\n3. Highlight the most important insights and conclusions.\n4. Preserve relevant source URLs from the research.\n5. Identify unsupported claims, missing evidence, or conflicting information.\n6. Never invent facts or claim that you independently verified something you did not verify.\n7. If the research is insufficient, clearly explain the limitations.\n\nReturn the final answer in simple, professional language with:\n- Executive Summary\n- Key Findings\n- Analysis and Insights\n- Sources\n- Limitations\n\nCheck whether the research from AI Agent 1 contains direct source URLs for all three examples. Preserve those URLs in the final answer and connect each source to the relevant claim. Do not invent URLs or claim that links have been verified unless they were actually checked. If sources are missing, state that clearly.\n\nUse the research provided by the previous agent as your primary input."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        576,
+        0
+      ],
+      "id": "30cd1e13-6130-4125-a0c3-9987b091fa49",
+      "name": "AI Agent 2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search in Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent 1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent 1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent 2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent 1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "43bc8464-ca92-4b3e-85b8-a655399f67b2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f9a612ed78415f5b7ac6770c415572f8538bb17bc611ef3e2e38b962faa4360d"
+  },
+  "nodeGroups": [],
+  "id": "RQwx73VJsDGwkXwF",
+  "tags": []
+}
